@@ -26,7 +26,7 @@ def array_to_hex_string(arr):
             raise Exception("Value is greater than it is possible to represent with one byte")
         hex_str += "%02x" % val
 
-    return hex_str
+    return hex_str.encode('utf8')
 
 def crc32_unsigned(bytestring):
     return binascii.crc32(bytestring) % (1 << 32)

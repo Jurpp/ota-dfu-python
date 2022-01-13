@@ -115,7 +115,7 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
     # Perform a scan and connect via gatttool.
     # Will return True if a connection was established, False otherwise
     # --------------------------------------------------------------------------
-    def scan_and_connect(self, timeout=2):
+    def scan_and_connect(self, timeout=5):
         if verbose: print("scan_and_connect")
 
         print("Connecting to %s" % (self.target_mac))
