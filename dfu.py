@@ -27,6 +27,10 @@ def main():
     ================================
     """
 
+    unpacker = None
+    hexfile  = None
+    datfile  = None
+
     # print "DFU Server start"
     print(init_msg)
 
@@ -93,10 +97,6 @@ def main():
         if not options.address:
             parser.print_help()
             exit(2)
-
-        unpacker = None
-        hexfile  = None
-        datfile  = None
 
         if options.zipfile != None:
 
