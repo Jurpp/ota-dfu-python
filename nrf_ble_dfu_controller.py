@@ -90,7 +90,6 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
     # --------------------------------------------------------------------------
     def input_setup(self):
         print("Sending file " + os.path.split(self.firmware_path)[1] + " to " + self.target_mac)
-
         if self.firmware_path == None:
             raise Exception("input invalid")
 
@@ -98,11 +97,9 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
 
         if extent == ".bin":
             self.bin_array = array('B', open(self.firmware_path, 'rb').read())
-
             self.image_size = len(self.bin_array)
             print("Binary imge size: %d" % self.image_size)
             print("Binary CRC32: %d" % crc32_unsigned(array_to_hex_string(self.bin_array)))
-
             return
 
         if extent == ".hex":
@@ -160,10 +157,9 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
     def _get_handles(self, uuid):
         self.ble_conn.before = ""
         self.ble_conn.sendline('characteristics')
-
         try:
             self.ble_conn.expect([uuid], timeout=2)
-            handles = re.findall('.*handle: (0x....),.*char value handle: (0x....)', self.ble_conn.before)
+            handles = re.findall('.*handle: (0x....),.*char value handle: (0x....)', self.ble_conn.before.decode('utf8'))
             (handle, value_handle) = handles[-1]
         except pexpect.TIMEOUT as e:
             raise Exception("UUID not found: {}".format(uuid))
