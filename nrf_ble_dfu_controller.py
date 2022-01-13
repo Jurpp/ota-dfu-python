@@ -173,7 +173,7 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
     def _dfu_wait_for_notify(self):
         while True:
             if verbose: print("dfu_wait_for_notify")
-
+            
             if not self.ble_conn.isalive():
                 print("connection not alive")
                 return None
@@ -202,11 +202,11 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
             if index == 0:
                 after = self.ble_conn.after
                 hxstr = after.split()[3:]
-                handle = int(float.fromhex(hxstr[0]))
+                handle = int(float.fromhex(hxstr[0].decode('utf8')))
                 return hxstr[2:]
 
             else:
-                print("unexpeced index: {0}".format(index))
+                print(f"unexpected index: {index}")
                 return None
 
     # --------------------------------------------------------------------------
@@ -216,10 +216,10 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
         if verbose: print('_dfu_send_command')
 
         cmd  = 'char-write-req 0x%04x %02x' % (self.ctrlpt_handle, procedure)
-        cmd += array_to_hex_string(params)
+        cmd += array_to_hex_string(params).decode('utf8')
 
         if verbose: print(cmd)
-
+        
         self.ble_conn.sendline(cmd)
 
         # Verify that command was successfully written
@@ -234,7 +234,7 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
     def _dfu_send_data(self, data):
         cmd  = 'char-write-cmd 0x%04x' % (self.data_handle)
         cmd += ' '
-        cmd += array_to_hex_string(data)
+        cmd += array_to_hex_string(data).decode('utf8')
 
         if verbose: print(cmd)
 

@@ -120,6 +120,7 @@ class BleDfuControllerSecure(NrfBleDfuController):
     def switch_to_dfu_mode(self):
         (_, bl_value_handle, bl_cccd_handle) = self._get_handles(self.UUID_BUTTONLESS)
 
+        # TODO: Enabling notifications seems to fail, wrong UUID or smth??
         self._enable_notifications(bl_cccd_handle)
 
         # Reset the board in DFU mode. After reset the board will be disconnected
@@ -251,14 +252,14 @@ class BleDfuControllerSecure(NrfBleDfuController):
         # Split the firmware into multiple objects
         num_objects = int(math.ceil(self.image_size / float(max_size)))
         print("Max object size: %d, num objects: %d, offset: %d, total size: %d" % (max_size, num_objects, offset, self.image_size))
-
+        
         time_start = time.time()
         last_send_time = time.time()
-
+        
         obj_offset = (offset/max_size)*max_size
         while(obj_offset < self.image_size):
             # print "\nSending object {} of {}".format(obj_offset/max_size+1, num_objects)
-            obj_offset += self._dfu_send_object(obj_offset, max_size)
+            obj_offset += self._dfu_send_object(int(obj_offset), max_size)
 
         # Image uploaded successfully, update the progress bar
         print_progress(self.image_size, self.image_size, prefix = 'Progress:', suffix = 'Complete', barLength = 50)
@@ -283,12 +284,12 @@ class BleDfuControllerSecure(NrfBleDfuController):
             segment_begin = offset
             segment_end = min(offset+obj_max_size, self.image_size)
 
-            for i in range(segment_begin, segment_end, self.pkt_payload_size):
+            for i in range(int(segment_begin), int(segment_end), self.pkt_payload_size):
                 num_bytes = min(self.pkt_payload_size, segment_end - i)
                 segment = self.bin_array[i:i + num_bytes]
                 self._dfu_send_data(segment)
                 segment_count += 1
-
+                
                 # print "j: {} i: {}, end: {}, bytes: {}, size: {} segment #{} of {}".format(
                 #     offset, i, segment_end, num_bytes, self.image_size, segment_count, segment_total)
 
@@ -298,7 +299,7 @@ class BleDfuControllerSecure(NrfBleDfuController):
                     except e:
                         # Likely no notification received, need to re-transmit object
                         return 0
-
+                    
                     if res != Results.SUCCESS:
                         raise Exception("bad notification status: {}".format(Results.to_string(res)))
 
