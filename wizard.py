@@ -6,13 +6,13 @@
 
 import os
 
-from Tkinter import *
+from tkinter import *
 
-import ttk
-import tkMessageBox
+import tkinter.ttk
+import tkinter.messagebox
 
-import tkFileDialog
-from tkFileDialog import askopenfilename
+import tkinter.filedialog
+from tkinter.filedialog import askopenfilename
 
 from scan import Scan
 from dfu2 import *
@@ -75,7 +75,7 @@ class Application(Frame):
         self.frame3 = Frame(self)
         self.frame3.grid(row=7, column=0, rowspan=2, pady=5, sticky=N)
 
-        self.progress3 = ttk.Progressbar(self.frame3)
+        self.progress3 = tkinter.ttk.Progressbar(self.frame3)
         self.progress3['orient'] = 'horizontal'
         self.progress3['length'] = 250
         self.progress3['mode'] = 'determinate'
@@ -108,13 +108,13 @@ class Application(Frame):
         self.addr = widget.get(selected[0])
 
         if self.addr and self.file:
-            print "addr: {0}".format(self.addr)
-            print "file: {0}".format(self.file)
+            print("addr: {0}".format(self.addr))
+            print("file: {0}".format(self.file))
 
             # dfu_server("-z {0} -a {1}".format(self.file, self.addr))
 
         else:
-            tkMessageBox.showwarning("Error", "Missing application file")
+            tkinter.messagebox.showwarning("Error", "Missing application file")
 
         return
 

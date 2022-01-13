@@ -33,7 +33,7 @@ def crc32_unsigned(bytestring):
 
 def mac_string_to_uint(mac):
     parts = list(re.match('(..):(..):(..):(..):(..):(..)', mac).groups())
-    ints = map(lambda x: int(x, 16), parts)
+    ints = [int(x, 16) for x in parts]
 
     res = 0
     for i in range(0, len(ints)):
@@ -46,7 +46,7 @@ def uint_to_mac_string(mac):
     for i in range(0, len(ints)):
         ints[len(ints)-1 - i] = (mac >> 8*i) & 0xff
 
-    return ':'.join(map(lambda x: '{:02x}'.format(x).upper(), ints))
+    return ':'.join(['{:02x}'.format(x).upper() for x in ints])
 
 # Print a nice console progress bar
 def print_progress(iteration, total, prefix = '', suffix = '', decimals = 1, barLength = 100):
