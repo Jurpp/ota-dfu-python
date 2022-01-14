@@ -1,13 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 ------------------------------------------------------------------------------
- DFU Server for Nordic nRF51 based systems.
- Conforms to nRF51_SDK 11.0 BLE_DFU requirements.
+ DFU Server for Nordic nRF52 based systems.
+ Conforms to nRF51_SDK 15.3 BLE_DFU requirements.
 ------------------------------------------------------------------------------
 """
 import os, re
 import sys
-import optparse
+import argparse
 import time
 import math
 import traceback
@@ -15,7 +15,6 @@ import traceback
 from unpacker import Unpacker
 
 from ble_secure_dfu_controller import BleDfuControllerSecure
-from ble_legacy_dfu_controller import BleDfuControllerLegacy
 
 def main():
 
@@ -32,111 +31,26 @@ def main():
     hexfile  = None
     datfile  = None
 
-    # print "DFU Server start"
     print(init_msg)
 
-    try:
-        parser = optparse.OptionParser(usage='%prog -f <hex_file> -a <dfu_target_address>\n\nExample:\n\tdfu.py -f application.hex -d application.dat -a cd:e3:4a:47:1c:e4',
-                                       version='0.5')
+    parser = argparse.ArgumentParser(usage='dfu.py <zip_file> <dfu_target_address>\n\nExample:\n\tdfu.py ./firmware.zip cd:e3:4a:47:1c:e4')
 
-        parser.add_option('-a', '--address',
-                  action='store',
-                  dest="address",
-                  type="string",
-                  default=None,
-                  help='DFU target address.'
-                  )
-
-        parser.add_option('-f', '--file',
-                  action='store',
-                  dest="hexfile",
-                  type="string",
-                  default=None,
-                  help='hex file to be uploaded.'
-                  )
-
-        parser.add_option('-d', '--dat',
-                  action='store',
-                  dest="datfile",
-                  type="string",
-                  default=None,
-                  help='dat file to be uploaded.'
-                  )
-
-        parser.add_option('-z', '--zip',
-                  action='store',
-                  dest="zipfile",
-                  type="string",
-                  default=None,
-                  help='zip file to be used.'
-                  )
-
-        parser.add_option('--secure',
-                  action='store_true',
-                  dest='secure_dfu',
-                  default=True,
-                  help='Use secure bootloader (Nordic SDK > 12)'
-                  )
-
-        parser.add_option('--legacy',
-                  action='store_false',
-                  dest='secure_dfu',
-                  help='Use secure bootloader (Nordic SDK < 12)'
-                  )
-
-        options, args = parser.parse_args()
-
-    except Exception as e:
-        print(e)
-        print("For help use --help")
-        sys.exit(2)
+    parser.add_argument('zipfile')
+    parser.add_argument('address')
+    args = parser.parse_args()
 
     try:
+        unpacker = Unpacker()
 
-        ''' Validate input parameters '''
-
-        if not options.address:
-            parser.print_help()
-            exit(2)
-
-        if options.zipfile != None:
-
-            if (options.hexfile != None) or (options.datfile != None):
-                print("Conflicting input directives")
-                exit(2)
-
-            unpacker = Unpacker()
-            #print options.zipfile
-            try:
-                hexfile, datfile = unpacker.unpack_zipfile(options.zipfile)	
-            except Exception as e:
-                print("ERR")
-                print(e)
-                pass
-
-        else:
-            if (not options.hexfile) or (not options.datfile):
-                parser.print_help()
-                exit(2)
-
-            if not os.path.isfile(options.hexfile):
-                print("Error: Hex file doesn't exist")
-                exit(2)
-
-            if not os.path.isfile(options.datfile):
-                print("Error: DAT file doesn't exist")
-                exit(2)
-
-            hexfile = options.hexfile
-            datfile = options.datfile
+        try:
+            hexfile, datfile = unpacker.unpack_zipfile(args.zipfile)	
+        except Exception as e:
+            print("[-]")
+            print(e)
+            pass
 
 
-        ''' Start of Device Firmware Update processing '''
-
-        if options.secure_dfu:
-            ble_dfu = BleDfuControllerSecure(options.address.upper(), hexfile, datfile)
-        else:
-            ble_dfu = BleDfuControllerLegacy(options.address.upper(), hexfile, datfile)
+        ble_dfu = BleDfuControllerSecure(args.address.upper(), hexfile, datfile)
 
         # Initialize inputs
         ble_dfu.input_setup()
@@ -144,18 +58,22 @@ def main():
         # Connect to peer device. Assume application mode.
         if ble_dfu.scan_and_connect():
             if not ble_dfu.check_DFU_mode():
-                print("Need to switch to DFU mode")
+                print("[i] Target needs to switch to DFU mode")
                 success = ble_dfu.switch_to_dfu_mode()
                 if not success:
-                    print("Couldn't reconnect")
+                    print("[-] Couldn't reconnect")
+                    unpacker.delete()
+                    sys.exit(1)
         else:
             # The device might already be in DFU mode (MAC + 1)
             ble_dfu.target_mac_increase(1)
 
             # Try connection with new address
-            print("Couldn't connect, will try DFU MAC")
+            print("[-] Couldn't connect trying DFU MAC next...")
             if not ble_dfu.scan_and_connect():
-                raise Exception("Can't connect to device")
+                print("[-] Can't connect to device")
+                unpacker.delete()
+                sys.exit(1)
 
         ble_dfu.start()
 
@@ -164,23 +82,13 @@ def main():
 
     except Exception as e:
         # print traceback.format_exc()
-        print("Exception at line {}: {}".format(sys.exc_info()[2].tb_lineno, e))
+        print("[-] Exception at line {}: {}".format(sys.exc_info()[2].tb_lineno, e))
         pass
 
-    except:
-        pass
+    # Delete temporary files
+    unpacker.delete()
 
-    # If Unpacker for zipfile used then delete Unpacker
-    if unpacker != None:
-       unpacker.delete()
 
-    print("DFU Server done")
-
-"""
-------------------------------------------------------------------------------
-
-------------------------------------------------------------------------------
-"""
 if __name__ == '__main__':
 
     # Do not litter the world with broken .pyc files.

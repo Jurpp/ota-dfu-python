@@ -21,7 +21,7 @@ class Unpacker(object):
    # 
    #--------------------------------------------------------------------------
    def unpack_zipfile(self, file):
-
+        print("[*] Unpacking DFU zip file...")
         if not os.path.isfile(file):
             raise Exception("Error: file, not found!")
 
@@ -50,5 +50,6 @@ class Unpacker(object):
    # 
    #--------------------------------------------------------------------------
    def delete(self):
+       print("[*] Deleting temporary files...")
        # delete self.unzip_dir and its contents
        shutil.rmtree(self.unzip_dir)

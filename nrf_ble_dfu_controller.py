@@ -89,7 +89,7 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
     #    Bin: read binfile into bin_array
     # --------------------------------------------------------------------------
     def input_setup(self):
-        print("Sending file " + os.path.split(self.firmware_path)[1] + " to " + self.target_mac)
+        print("[*] Preparing to send file " + os.path.split(self.firmware_path)[1] + " to " + self.target_mac)
         if self.firmware_path == None:
             raise Exception("input invalid")
 
@@ -98,8 +98,7 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
         if extent == ".bin":
             self.bin_array = array('B', open(self.firmware_path, 'rb').read())
             self.image_size = len(self.bin_array)
-            print("Binary imge size: %d" % self.image_size)
-            print("Binary CRC32: %d" % crc32_unsigned(array_to_hex_string(self.bin_array)))
+            print(f"[i] Binary image size:{self.image_size}, CRC32 checksum: {crc32_unsigned(array_to_hex_string(self.bin_array))}")
             return
 
         if extent == ".hex":
@@ -118,7 +117,7 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
     def scan_and_connect(self, timeout=5):
         if verbose: print("scan_and_connect")
 
-        print("Connecting to %s" % (self.target_mac))
+        print("[*] Connecting to %s" % (self.target_mac))
 
         try:
             self.ble_conn.expect('\[LE\]>', timeout=timeout)

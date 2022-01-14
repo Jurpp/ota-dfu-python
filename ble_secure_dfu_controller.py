@@ -104,7 +104,7 @@ class BleDfuControllerSecure(NrfBleDfuController):
     #  Returns True if the peripheral is in DFU mode
     # --------------------------------------------------------------------------
     def check_DFU_mode(self):
-        print("Checking DFU State...")
+        print("[*] Checking DFU State...")
 
         self.ble_conn.sendline('characteristics')
 
