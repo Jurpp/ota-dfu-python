@@ -1,69 +1,35 @@
-# Python nRF5 OTA DFU Controller
+# Python nRF52 OTA DFU Controller
 
-This is my fork of astronomer80's fork of foldedtoad's Python OTA DFU utility. 
-I've made some substantial changes to the code from the original repo, mainly:
+This is my fork of mdxs's fork of astronomer80's fork of foldedtoad's Python OTA DFU utility. 
+The goal of this fork is to achieve:
 
-* Improved code structure and readability
-* Add support for the new secure bootloader from NRF SDK 12
+* Python3 support
+* Work with the secure bootloader of nRF SDK15+
 
 ## What does it do?
 
-This is a Python program that uses `gatttool` (provided with the Linux BlueZ driver) to achieve Over The Air (OTA) Device Firmware Updates (DFU) to a Nordic Semiconductor nRF5 (either nRF51 or nRF52) device via Bluetooth Low Energy (BLE).
+This is a Python program that uses `gatttool` (provided with the Linux BlueZ driver) to achieve Over The Air (OTA) Device Firmware Updates (DFU) to a Nordic Semiconductor nRF52 device via Bluetooth Low Energy (BLE).
 
 ### Main features:
 
 * Perform OTA DFU to an nRF5 peripheral without an external USB BLE dongle.
 * Ability to detect if the peripheral is running in application mode or bootloader, and automatically switch if needed (buttonless).
-* Support for both Legacy (SDK <= 11) and Secure (SDK >= 12) bootloader.
-
-Before using this utility the nRF5 peripheral device needs to be programmed with a DFU bootloader (see Nordic Semiconductor documentation/examples for instructions on that).
-
-This project assumes you are developing on and deploying to a Linux system. Astronomer80 has repos for similar applications for [Windows](https://github.com/astronomer80/nrf52_bledfu_win) and [Mac OS X](https://github.com/astronomer80/nrf52_bledfu_mac).
+* Support for Secure bootloader.
 
 ## Prerequisites
 
 * BlueZ 5.4 or above
-* Python 2.7
+* Python 3 (tested with 3.9)
 * Python `pexpect` module (available via pip)
 * Python `intelhex` module (available via pip)
 
-## Firmware Build Requirement
-
-* Your nRF5 peripheral firmware build method will produce  a firmware file ending with either `*.hex` or `*.bin`.
-* Your nRF5 firmware build method will produce an Init file ending with `.dat`.
-* The typical naming convention is `application.bin` and `application.dat`, but this utility will accept other names.
-
-## Generating init files
-
-### Legacy bootloader
-
-Use the `gen_dat` application (you need to compile it with `gcc gen_dat.c -o gen_dat` on first run) to generate a `.dat` file from your `.bin` file. Example:
-
-    ./gen_dat application.bin application.dat
-
-Note: The `gen_dat` utility expects a `.bin` file input, so you'll get Cyclic Redundancy Check (CRC) errors during DFU using a `.dat` file generated from a `.hex` file.
-
-An alternative is to use `nrfutil` from Nordic Semiconductor, but I've found this method to be easier. You may need to edit the `gen_dat` source to fit your specific application.
-
-### Secure bootloader
-
-You need to use `nrfutil` to generate firmware packages for the new secure bootloader (SDK > 12) as the package needs to be signed with a private/public key pair. Note that the bootloader will need to be programmed with the corresponding public key. See the [nrfutil repo](https://github.com/NordicSemiconductor/pc-nrfutil) for details.
-
-Note: I've had problems with the pip version of `nrfutil`. I recommend [installing from source](https://github.com/NordicSemiconductor/pc-nrfutil#running-and-installing-from-source) instead.
-
 ## Usage
 
-There are two ways to specify firmware files for this utility. Either by specifying both the `.hex` or `.bin` file with the `.dat` file, or more easily by the `.zip` file, which contains both the hex and dat files.
-
-The new `.zip` file form is encouraged by Nordic, but the older hex/bin + dat file methods should still work.
+Generate your DFU package using `nrfutil` and run the dfu script.
 
 ## Usage Examples
 
-    > sudo ./dfu.py -f ~/application.hex -d ~/application.dat -a CD:E3:4A:47:1C:E4
-
-or:
-
-    > sudo ./dfu.py -z ~/application.zip -a CD:E3:4A:47:1C:E4
+    $ python3 dfu.py -z firmware.zip -a CD:E3:4A:47:1C:E4
 
 You can use the `hcitool lescan` to figure out the address of a DFU target, for example:
 
@@ -75,37 +41,32 @@ You can use the `hcitool lescan` to figure out the address of a DFU target, for 
 
 ## Example Output
 
-        ================================
-        ==                            ==
-        ==         DFU Server         ==
-        ==                            ==
-        ================================ 
+    $ python3 dfu.py -z firmware.zip -a CD:E3:4A:47:1C:E4 --secure
 
-    Sending file application.bin to CD:E3:4A:47:1C:E4
-    bin array size:  60788
+    ================================
+    ==                            ==
+    ==         DFU Server         ==
+    ==         Jurpp Fork         ==
+    ==                            ==
+    ================================
+
+    Sending file firmware.bin to CD:E3:4A:47:1C:E4
+    Binary imge size: 177280
+    Binary CRC32: 2822816268
+    Connecting to CD:E3:4A:47:1C:E4
     Checking DFU State...
-    Board needs to switch in DFU mode
-    Switching to DFU mode
-    Enable Notifications in DFU mode
-    Sending hex file size
-    Waiting for Image Size notification
-    Waiting for INIT DFU notification
-    Begin DFU
-    Progress: |xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx| 100.0% Complete (60788 of 60788 bytes)
+    Init packet successfully transfered
+    Max object size: 4096, num objects: 44, offset: 0, total size: 177280
+    Progress: |xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx| 100.0% Complete (177280 of 177280 bytes)
 
-    Upload complete in 0 minutes and 14 seconds
-    segments sent: 3040
-    Waiting for DFU complete notification
-    Waiting for Firmware Validation notification
-    Activate and reset
+    Upload complete in 2 minutes and 42 seconds
     DFU Server done
 
 ## TODO:
 
-* Implement link-loss procedure for Legacy Controller.
-* Update example output in readme.
-* Add makefile examples.
-* More code cleanup.
+* Fix switching to bootloader using buttonless DFU
+* Remove unused legacy mode
+
 
 ## Info & References
 
