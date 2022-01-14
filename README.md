@@ -29,7 +29,7 @@ Generate your DFU package using `nrfutil` and run the dfu script.
 
 ## Usage Examples
 
-    $ python3 dfu.py -z firmware.zip -a CD:E3:4A:47:1C:E4
+    $ python3 dfu.py firmware.zip CD:E3:4A:47:1C:E4
 
 You can use the `hcitool lescan` to figure out the address of a DFU target, for example:
 
@@ -41,7 +41,7 @@ You can use the `hcitool lescan` to figure out the address of a DFU target, for 
 
 ## Example Output
 
-    $ python3 dfu.py -z firmware.zip -a CD:E3:4A:47:1C:E4 --secure
+    $ python3 dfu.py firmware.zip CD:E3:4A:47:1C:E4
 
     ================================
     ==                            ==
