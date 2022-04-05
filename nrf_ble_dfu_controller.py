@@ -245,7 +245,7 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
     def _enable_notifications(self, cccd_handle):
         if verbose: print('_enable_notifications')
 
-        cmd  = 'char-write-req 0x%04x %s' % (cccd_handle, '0100')
+        cmd  = 'char-write-req 0x%04x %s' % (cccd_handle, '0200')
 
         if verbose: print(cmd)
 
