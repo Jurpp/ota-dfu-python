@@ -130,7 +130,7 @@ class NrfBleDfuController(object, metaclass=ABCMeta):
             res = self.ble_conn.expect('.*Connection successful.*', timeout=timeout)
         except pexpect.TIMEOUT as e:
             return False
-
+        print("[+] Connected to %s" % (self.target_mac))
         return True
 
     # --------------------------------------------------------------------------
